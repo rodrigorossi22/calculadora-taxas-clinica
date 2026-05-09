@@ -67,15 +67,20 @@ function App() {
 
   const taxPercentage = RATES[brand][modality] || 0
   
+  const isInstallment = modality.endsWith('x')
+  const installmentsCount = isInstallment ? parseInt(modality, 10) : 1
+
   // Cenário A: Repasse da Taxa. Quanto cobrar para receber o valor base?
   // Valor Cobrado = Valor Base / (1 - (Taxa/100))
   const amountToCharge = parsedAmount / (1 - (taxPercentage / 100))
   const repasseTaxValue = amountToCharge - parsedAmount
+  const repasseInstallmentValue = isInstallment ? amountToCharge / installmentsCount : 0
 
   // Cenário B: Absorção da Taxa. Se cobrar o valor base, quanto recebe?
   // Valor Líquido = Valor Base * (1 - (Taxa/100))
   const netAmount = parsedAmount * (1 - (taxPercentage / 100))
   const absorcaoTaxValue = parsedAmount - netAmount
+  const baseInstallmentValue = isInstallment ? parsedAmount / installmentsCount : 0
 
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
@@ -163,6 +168,11 @@ function App() {
               <div>
                 <p className="text-xs text-blue-700 font-medium uppercase tracking-wider mb-1">Valor a cobrar na máquina</p>
                 <p className="text-3xl font-bold text-blue-700">{formatCurrency(amountToCharge)}</p>
+                {isInstallment && (
+                  <p className="text-sm font-medium text-blue-600 mt-1">
+                    em {installmentsCount}x de {formatCurrency(repasseInstallmentValue)}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-xs text-blue-600 mb-1">Taxa retida ({taxPercentage}%)</p>
@@ -183,6 +193,11 @@ function App() {
               <div>
                 <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Valor líquido na sua conta</p>
                 <p className="text-3xl font-bold text-green-600">{formatCurrency(netAmount)}</p>
+                {isInstallment && (
+                  <p className="text-sm font-medium text-gray-500 mt-1">
+                    Cliente paga {installmentsCount}x de {formatCurrency(baseInstallmentValue)}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-500 mb-1">Taxa retida ({taxPercentage}%)</p>
